@@ -3,8 +3,8 @@ import 'package:assign01/page/intro_page.dart';
 import 'package:assign01/page/sign_up_page.dart';
 import 'package:assign01/utils/dialogs.dart';
 import 'package:flutter/material.dart';
+import 'package:form_validator/form_validator.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
-import '../custom_widgets/text_form.dart';
 import '../shared/spref.dart';
 
 class SignInPage extends StatefulWidget {
@@ -13,8 +13,8 @@ class SignInPage extends StatefulWidget {
 }
 
 class _SignInPageState extends State<SignInPage> {
-  final TextEditingController emailSignUpCtl = TextEditingController();
-  final TextEditingController passSignUpCtl = TextEditingController();
+  final TextEditingController emailSignInCtl = TextEditingController();
+  final TextEditingController passSignInCtl = TextEditingController();
   bool _onLoading = false;
   @override
   Widget build(BuildContext context) {
@@ -29,15 +29,29 @@ class _SignInPageState extends State<SignInPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              MyTextFormWidget(
-                controller: emailSignUpCtl,
-                icon: const Icon(Icons.email_outlined),
-                hint: "Email",
+              Container(
+                margin: const EdgeInsets.symmetric(vertical: 10),
+                height: 50,
+                child: TextFormField(
+                  validator: ValidationBuilder().email("Invalid email ").maxLength(50,'Email require less than 50 characters').build(),
+                  decoration: const InputDecoration(
+                      prefixIcon: Icon(Icons.email_outlined),
+                      hintText: "Email",
+                      border: OutlineInputBorder()),
+                  controller: emailSignInCtl,
+                ),
               ),
-              MyTextFormWidget(
-                controller: passSignUpCtl,
-                icon: const Icon(Icons.password_outlined),
-                hint: "Password",
+              Container(
+                margin: const EdgeInsets.symmetric(vertical: 10),
+                height: 50,
+                child: TextFormField(
+                  validator: ValidationBuilder().minLength(4,"Name require greater than 4 characters").maxLength(32,"Name require less than 32 characters").build(),
+                  decoration: const InputDecoration(
+                      prefixIcon: Icon(Icons.password_outlined),
+                      hintText: "Password",
+                      border: OutlineInputBorder()),
+                  controller: passSignInCtl,
+                ),
               ),
               Container(
                 height: 50,
@@ -87,8 +101,8 @@ class _SignInPageState extends State<SignInPage> {
     setState(() {
       _onLoading = true;
     });
-    var email = emailSignUpCtl.text;
-    var pass = passSignUpCtl.text;
+    var email = emailSignInCtl.text;
+    var pass = passSignInCtl.text;
     GithubApi().signIn(email, pass).then((user) async {
       await SPref.instance.set("token", user.token);
       setState(() {

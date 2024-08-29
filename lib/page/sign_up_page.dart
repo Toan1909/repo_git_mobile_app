@@ -2,9 +2,9 @@ import 'package:assign01/network/github_api.dart';
 import 'package:assign01/page/sign_in_page.dart';
 import 'package:assign01/utils/dialogs.dart';
 import 'package:flutter/material.dart';
+import 'package:form_validator/form_validator.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 
-import '../custom_widgets/text_form.dart';
 import '../shared/spref.dart';
 
 class SignUpPage extends StatefulWidget {
@@ -30,20 +30,42 @@ class _SignUpPageState extends State<SignUpPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              MyTextFormWidget(
-                controller: nameSignUpCtl,
-                icon: const Icon(Icons.info_outline),
-                hint: "Name",
+              Container(
+                margin: const EdgeInsets.symmetric(vertical: 10),
+                height: 50,
+                child: TextFormField(
+                  validator: ValidationBuilder().minLength(3,"Name require greater than 3 characters").maxLength(40,'Name require less than 40 characters').build(),
+                  decoration: const InputDecoration(
+                      prefixIcon: Icon(Icons.info_outline),
+                      hintText: "Name",
+                      border: OutlineInputBorder()),
+                  controller: nameSignUpCtl,
+                ),
               ),
-              MyTextFormWidget(
-                controller: emailSignUpCtl,
-                icon: const Icon(Icons.email_outlined),
-                hint: "Email",
+              Container(
+                margin: const EdgeInsets.symmetric(vertical: 10),
+                height: 50,
+                child: TextFormField(
+                  validator: ValidationBuilder().email("Invalid email ").maxLength(50,'Email require less than 50 characters').build(),
+                  decoration: const InputDecoration(
+                      prefixIcon: Icon(Icons.email_outlined),
+                      hintText: "Email",
+                      border: OutlineInputBorder()),
+                  controller: emailSignUpCtl,
+                ),
               ),
-              MyTextFormWidget(
-                controller: passSignUpCtl,
-                icon: const Icon(Icons.password_outlined),
-                hint: "Password",
+              Container(
+                margin: const EdgeInsets.symmetric(vertical: 10),
+                height: 50,
+                child: TextFormField(
+                  obscureText: true,
+                  validator: ValidationBuilder().minLength(4,"Name require greater than 4 characters").maxLength(32,"Name require less than 32 characters").build(),
+                  decoration: const InputDecoration(
+                      prefixIcon: Icon(Icons.password_outlined),
+                      hintText: "Password",
+                      border: OutlineInputBorder()),
+                  controller: passSignUpCtl,
+                ),
               ),
               Container(
                 height: 50,
