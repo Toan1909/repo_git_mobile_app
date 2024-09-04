@@ -13,6 +13,7 @@ class SignInPage extends StatefulWidget {
 }
 
 class _SignInPageState extends State<SignInPage> {
+  final GlobalKey<FormState> _form = GlobalKey<FormState>();
   final TextEditingController emailSignInCtl = TextEditingController();
   final TextEditingController passSignInCtl = TextEditingController();
   bool _onLoading = false;
@@ -24,15 +25,14 @@ class _SignInPageState extends State<SignInPage> {
         centerTitle: true,
       ),
       body: Stack(children: [
-        Container(
-          margin: const EdgeInsets.symmetric(horizontal: 40),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                margin: const EdgeInsets.symmetric(vertical: 10),
-                height: 50,
-                child: TextFormField(
+        Form(
+          key: _form,
+          child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 40),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                TextFormField(
                   validator: ValidationBuilder().email("Invalid email ").maxLength(50,'Email require less than 50 characters').build(),
                   decoration: const InputDecoration(
                       prefixIcon: Icon(Icons.email_outlined),
@@ -40,11 +40,8 @@ class _SignInPageState extends State<SignInPage> {
                       border: OutlineInputBorder()),
                   controller: emailSignInCtl,
                 ),
-              ),
-              Container(
-                margin: const EdgeInsets.symmetric(vertical: 10),
-                height: 50,
-                child: TextFormField(
+                const SizedBox(height: 16,),
+                TextFormField(
                   validator: ValidationBuilder().minLength(4,"Name require greater than 4 characters").maxLength(32,"Name require less than 32 characters").build(),
                   decoration: const InputDecoration(
                       prefixIcon: Icon(Icons.password_outlined),
@@ -52,36 +49,37 @@ class _SignInPageState extends State<SignInPage> {
                       border: OutlineInputBorder()),
                   controller: passSignInCtl,
                 ),
-              ),
-              Container(
-                height: 50,
-                margin: const EdgeInsets.only(top: 40),
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: const ButtonStyle(
-                    backgroundColor:
-                        MaterialStatePropertyAll<Color>(Colors.lightBlueAccent),
-                  ),
-                  onPressed: _onBtnSignInPressed,
-                  child: const Text(
-                    "SIGN IN",
-                    style: TextStyle(color: Colors.white),
+                const SizedBox(height: 16,),
+                Container(
+                  height: 50,
+                  margin: const EdgeInsets.only(top: 40),
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: const ButtonStyle(
+                      backgroundColor:
+                          MaterialStatePropertyAll<Color>(Colors.lightBlueAccent),
+                    ),
+                    onPressed: _onBtnSignInPressed,
+                    child: const Text(
+                      "SIGN IN",
+                      style: TextStyle(color: Colors.white),
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(
-                height: 16,
-              ),
-              TextButton(
-                  onPressed: () {
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => SignUpPage()));
-                  },
-                  child: const Text(
-                    "Don't have account? Sign up now!",
-                    style: TextStyle(color: Colors.lightBlueAccent),
-                  ))
-            ],
+                const SizedBox(
+                  height: 16,
+                ),
+                TextButton(
+                    onPressed: () {
+                      Navigator.push(context,
+                          MaterialPageRoute(builder: (context) => SignUpPage()));
+                    },
+                    child: const Text(
+                      "Don't have account? Sign up now!",
+                      style: TextStyle(color: Colors.lightBlueAccent),
+                    ))
+              ],
+            ),
           ),
         ),
         Visibility(
@@ -98,33 +96,38 @@ class _SignInPageState extends State<SignInPage> {
   }
 
   void _onBtnSignInPressed() {
-    setState(() {
-      _onLoading = true;
-    });
-    var email = emailSignInCtl.text;
-    var pass = passSignInCtl.text;
-    GithubApi().signIn(email, pass).then((user) async {
-      await SPref.instance.set("token", user.token);
+    if (_form.currentState?.validate()== true){
       setState(() {
-        Future.delayed(const Duration(seconds: 1));
-        _onLoading = false;
+        _onLoading = true;
       });
-      Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => const IntroPage()));
-    }).catchError((e) {
-      setState(() {
-        _onLoading = false;
+      var email = emailSignInCtl.text;
+      var pass = passSignInCtl.text;
+      GithubApi().signIn(email, pass).then((user) async {
+        await SPref.instance.set("token", user.token);
+        setState(() {
+          Future.delayed(const Duration(seconds: 1));
+          _onLoading = false;
+        });
+        Navigator.pushReplacement(
+            context, MaterialPageRoute(builder: (context) => const IntroPage()));
+      }).catchError((e) {
+        setState(() {
+          _onLoading = false;
+        });
+        // Kiểm tra lỗi và hiển thị thông báo phù hợp
+        String errorMessage = "";
+        if (e == "Unauthorized") {
+          errorMessage = "Lỗi xác thực tài khoản, kiểm tra email hoặc passwork";
+        } else {
+          errorMessage = "Đã xảy ra lỗi. Vui lòng thử lại.";
+        }
+        // Hiển thị thông báo lỗi cho người dùng
+        myDialog(
+            context: context, title: "Sign In Error :((", message: errorMessage);
       });
-      // Kiểm tra lỗi và hiển thị thông báo phù hợp
-      String errorMessage = "";
-      if (e == "Unauthorized") {
-        errorMessage = "Lỗi xác thực tài khoản, kiểm tra email hoặc passwork";
-      } else {
-        errorMessage = "Đã xảy ra lỗi. Vui lòng thử lại.";
-      }
-      // Hiển thị thông báo lỗi cho người dùng
-      myDialog(
-          context: context, title: "Sign In Error :((", message: errorMessage);
-    });
+    }
+    else {
+      return;
+    }
   }
 }
